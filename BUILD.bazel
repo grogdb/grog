@@ -1,0 +1,17 @@
+load("@bazel_gazelle//:def.bzl", "gazelle")
+load("@io_bazel_rules_docker//container:container.bzl", "container_bundle")
+
+gazelle(
+    name = "gazelle",
+    command = "update",
+    external = "vendored",
+    prefix = "github.com/grogdb/grog",
+)
+
+container_bundle(
+    name = "package",
+    images = {
+        "grog/grog:{VERSION}": "//cmd/grog/:docker-image",
+    },
+    stamp = True,
+)

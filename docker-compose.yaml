@@ -1,0 +1,15 @@
+version: '3.6'
+services:
+  grog-0:
+    image: grog/grog:0.0.1-alpha
+    environment:
+    - DEBUG=true
+    - LOG_FORMAT=console
+    ports:
+     - 8080:8000
+    volumes:
+      - grog-0-data:/data/db
+volumes:
+  grog-0-data:
+  grog-1-data:
+  grog-2-data:

@@ -1,0 +1,8 @@
+*.pb.go
+.idea/
+.terraform/
+bazel-*
+vendor/
+
+backend.tf
+secrets.tf
