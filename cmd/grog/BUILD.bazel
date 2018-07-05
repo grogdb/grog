@@ -1,0 +1,41 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("@io_bazel_rules_docker//go:image.bzl", "go_image")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "git.perkbox.io/payday/cmd/app",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//internal/handler:go_default_library",
+        "//internal/middleware/cors:go_default_library",
+        "//internal/middleware/logger:go_default_library",
+        "//internal/middleware/requestid:go_default_library",
+        "//internal/repository/mongodb:go_default_library",
+        "//internal/service:go_default_library",
+        "//util/gatekeeper:go_default_library",
+        "//vendor/github.com/go-chi/chi:go_default_library",
+        "//vendor/github.com/go-chi/chi/middleware:go_default_library",
+        "//vendor/github.com/mongodb/mongo-go-driver/mongo:go_default_library",
+        "//vendor/github.com/rs/zerolog:go_default_library",
+        "//vendor/github.com/rs/zerolog/log:go_default_library",
+        "//vendor/gopkg.in/urfave/cli.v2:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "grog",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+    x_defs = {
+        "main.Build": "{GIT_COMMIT}",
+        "main.Name": "payday-v1",
+        "main.Version": "{APP_VERSION}",
+    },
+)
+
+go_image(
+    name = "docker-image",
+    binary = ":grog",
+    visibility = ["//visibility:public"],
+)

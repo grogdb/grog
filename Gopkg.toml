@@ -39,7 +39,7 @@
 
 [[constraint]]
   name = "github.com/hashicorp/serf"
-  version = "0.7.0"
+  branch = "master"
 
 [[constraint]]
   name = "github.com/rs/zerolog"
@@ -56,3 +56,7 @@
 [[constraint]]
   name = "github.com/spf13/viper"
   version = "1.0.2"
+
+[[constraint]]
+  name = "github.com/json-iterator/go"
+  version = "1.1.4"
