@@ -6,12 +6,20 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	"crypto/md5"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
 const (
 	bcryptHashCost = 12
 )
+
+func EncodeMd5String(value []byte) string {
+	h := md5.New()
+	h.Write(value)
+	return fmt.Sprintf("%v", hex.EncodeToString(h.Sum(nil)))
+}
 
 func EncodeSha1String(value []byte) string {
 	h := sha1.New()

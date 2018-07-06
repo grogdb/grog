@@ -1,0 +1,19 @@
+
+
+type Person {
+    id ID
+    email string
+    age int
+    location geopoint
+    partner Person
+    friends [Person]
+}
+
+type Other {
+    id ID
+    email string
+    age inta
+    location geopoint
+    partner Person
+    partner [Person]
+}

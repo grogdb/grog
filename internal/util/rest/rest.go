@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"git.perkbox.io/payday/util/jsonx"
+	"github.com/grogdb/grogdb/internal/util/json"
 )
 
 // var defaultETagger = NewMD5HashETagger()
@@ -35,7 +36,7 @@ func SendJSON(w http.ResponseWriter, statusCode int, data interface{}, eTagger .
 		tagger = eTagger[0]
 	}
 
-	body, err := jsonx.Marshal(data)
+	body, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}

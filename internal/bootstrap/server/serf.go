@@ -1,8 +1,9 @@
 package server
 
 import (
-	"github.com/hashicorp/serf/serf"
 	"time"
+
+	"github.com/hashicorp/serf/serf"
 )
 
 func SerfDefaultConfig() *serf.Config {

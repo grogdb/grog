@@ -3,16 +3,17 @@ package main
 import (
 	"fmt"
 	"os"
-	"github.com/grogdb/grog/internal/bootstrap"
+
+	"github.com/grogdb/grogdb/internal/bootstrap/cmd"
 )
 
 var (
-	Build = "dev"
+	Build   = "local"
 	Version = "X.X.X"
 )
 
 func main() {
-	if err := bootstrap.Execute(Build, Version); err != nil {
+	if err := cmd.Execute(Build, Version); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}

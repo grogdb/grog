@@ -1,5 +1,6 @@
 .PHONY: clean clean-all deps gazelle goimports golint govet package protos test update
 
+ANTLR:=$(shell which antlr4)
 BAZEL:=$(shell which bazel)
 DEP:=$(shell which dep)
 GAZELLE:=$(shell which gazelle)
@@ -11,6 +12,10 @@ PROTO_SOURCES:=$(shell find . -type f -name '*.proto')
 PROTO_FILES:=$(patsubst %.proto,%.pb.go,$(PROTO_SOURCES))
 
 all: package
+
+antlr:
+	@$(ANTLR) -Dlanguage=Go -package query internal/parser/query/Query.g4
+	@$(ANTLR) -Dlanguage=Go -package schema internal/parser/schema/Schema.g4
 
 clean:
 	@$(BAZEL) clean

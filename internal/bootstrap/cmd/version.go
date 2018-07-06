@@ -1,12 +1,12 @@
-package bootstrap
+package cmd
 
 import (
-	"github.com/spf13/cobra"
 	"fmt"
+
+	"github.com/spf13/cobra"
 )
 
-
-func init()  {
+func init() {
 	var versionCmd = &cobra.Command{
 		Use:   "version",
 		Short: "Print version information",

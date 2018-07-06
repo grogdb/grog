@@ -1,7 +1,7 @@
 package rest
 
 import (
-	"git.perkbox.io/payday/util/hash"
+	"github.com/grogdb/grogdb/internal/util/hash"
 )
 
 type ETagger interface {
@@ -19,7 +19,7 @@ func (e md5HashETagger) ETag(data []byte) string {
 	if len(data) == 0 {
 		return ""
 	}
-	return hash.EncodeMD5String(data)
+	return hash.EncodeMd5String(data)
 }
 
 func NewSha1HashETagger() ETagger {

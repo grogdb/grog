@@ -1,24 +1,24 @@
-package bootstrap
+package cmd
 
 import (
+	"fmt"
+	"os"
+	"strings"
+
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"strings"
-	"github.com/rs/zerolog"
-	"os"
-	"github.com/rs/zerolog/log"
-	"fmt"
 )
 
 var rootCmd = &cobra.Command{
 	Use:               "grog",
 	Short:             "Grog is a fast distributed graph database",
 	PersistentPreRunE: initialize,
-	// RunE:              runClient,
 }
 
 var (
-	appBuild = "dev"
+	appBuild   = "dev"
 	appVersion = "X.X.X"
 )
 
@@ -32,7 +32,7 @@ func Execute(build, version string) error {
 	return nil
 }
 
-func init()  {
+func init() {
 	rootCmd.PersistentFlags().BoolP(flagDebug, flagDebugShort, false, flagDebugDesc)
 	rootCmd.PersistentFlags().String(flagLogFormat, logFormatConsole, flagLogFormatDesc)
 	rootCmd.PersistentFlags().Bool(flagVerbose, false, flagVerboseDesc)

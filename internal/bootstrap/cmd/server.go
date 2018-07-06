@@ -1,10 +1,10 @@
-package bootstrap
+package cmd
 
 import (
 	"github.com/spf13/cobra"
 )
 
-func init()  {
+func init() {
 	var serverCmd = &cobra.Command{
 		Use:   "server",
 		Short: "Start in server mode",
@@ -22,5 +22,6 @@ func init()  {
 }
 
 func runServer(_ *cobra.Command, _ []string) error {
+	// FIXME: Missing implementation
 	return nil
 }

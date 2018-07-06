@@ -1,6 +1,6 @@
 package api
 
-import(
+import (
 	_ "github.com/dgraph-io/badger"
 	_ "github.com/go-chi/chi"
 	_ "github.com/hashicorp/raft"

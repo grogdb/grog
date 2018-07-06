@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "etag.go",
+        "headers.go",
+        "mimetypes.go",
+        "rest.go",
+    ],
+    importpath = "github.com/grogdb/grogdb/internal/util/rest",
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//internal/util/hash:go_default_library",
+        "//internal/util/json:go_default_library",
+        "//vendor/git.perkbox.io/payday/util/jsonx:go_default_library",
+    ],
+)

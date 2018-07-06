@@ -1,13 +1,14 @@
-package bootstrap
+package cmd
 
 import (
-	"github.com/spf13/cobra"
-	"github.com/grogdb/grog/internal/util/random"
 	"encoding/base64"
 	"fmt"
+
+	"github.com/grogdb/grogdb/internal/util/random"
+	"github.com/spf13/cobra"
 )
 
-func init()  {
+func init() {
 	var keygenCmd = &cobra.Command{
 		Use:   "keygen",
 		Short: "Generate a new encryption key",
