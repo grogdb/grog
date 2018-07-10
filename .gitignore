@@ -1,9 +1,5 @@
-*.pb.go
 .idea/
 bazel-*
 *.interp
 *.tokens
-internal/parser/**/*_lexer.go
-internal/parser/**/*_listener.go
-internal/parser/**/*_parser.go
 vendor/

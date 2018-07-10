@@ -1,4 +1,4 @@
-package api
+package client
 
 import (
 	_ "github.com/dgraph-io/badger"

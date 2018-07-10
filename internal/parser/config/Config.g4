@@ -1,11 +1,33 @@
-grammar Schema;
+grammar Config;
 
 /*
  * Parser rules
  */
 
-schema
-   : typeDecl (typeDecl)* EOF
+document
+    : ( optionsBlock
+      | schemaBlock
+      )* EOF
+    ;
+
+optionsBlock
+    : 'options' optionsBody
+    ;
+
+optionsBody
+    :   '{' ().? '}'
+    ;
+
+schemaBlock
+    : 'schema' schemaBody
+    ;
+
+schemaBody
+    :   '{' schemaTypes '}'
+    ;
+
+schemaTypes
+   : typeDecl (typeDecl)*
    ;
 
 typeDecl
@@ -55,7 +77,7 @@ fragment ULetter
     ;
 
 fragment LLetter
-    : [a-z]
+    : [a-z_]
     ;
 
 fragment Letter
@@ -63,7 +85,7 @@ fragment Letter
     ;
 
 fragment Digit
-    :   [0-9]
+    : [0-9]
     ;
 
 TypeIdentArray

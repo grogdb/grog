@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["config.go"],
+    importpath = "github.com/grogdb/grogdb/internal/parser",
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//internal/parser/config:go_default_library",
+        "//vendor/github.com/antlr/antlr4/runtime/Go/antlr:go_default_library",
+    ],
+)

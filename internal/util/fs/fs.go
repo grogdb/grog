@@ -2,13 +2,9 @@ package fs
 
 import (
 	"os"
-	"path/filepath"
 )
 
-func EnsurePath(path string, dir bool) error {
-	if !dir {
-		path = filepath.Dir(path)
-	}
+func EnsureDir(path string) error {
 	return os.MkdirAll(path, 0755)
 }
 

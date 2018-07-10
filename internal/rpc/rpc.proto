@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package rpc;
+
+message Message {
+    bytes payload = 1;
+}
+
+service GrogDB {
+    rpc Send(Message) returns (Message) {}
+}

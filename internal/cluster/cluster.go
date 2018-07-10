@@ -7,298 +7,343 @@ import (
 	"net"
 	"os"
 	"path/filepath"
-	"strconv"
 	"sync"
 
 	"github.com/grogdb/grogdb/internal/util/fs"
 	"github.com/grogdb/grogdb/internal/util/random"
 	"github.com/hashicorp/serf/serf"
-	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog"
+	"google.golang.org/grpc"
 )
 
 const (
-	RoleController = "controller"
-	RoleWorker     = "worker"
+	tagIsDirector = "is_director"
+	tagIsGraph    = "is_graph"
 )
 
-func NewManager(conf *Config) Manager {
-	manager := &clusterManager{
-		advertiseIP:   conf.AdvertiseIP,
-		clusterAddr:   conf.ClusterAddr,
-		dataDir:       filepath.Join(conf.DataDir, ".cluster"),
-		enableSerfLog: conf.EnableSerfLog,
-		eventCh:       make(chan serf.Event, 256),
-		members:       make(map[string]*MemberInfo),
-		role:          conf.Role,
-		rpcPort:       conf.RpcPort,
-		shutdownCh:    make(chan struct{}),
-	}
-	return manager
-}
-
-type MemberInfo struct {
-	ID       string `json:"id"`
-	Role     string `json:"role"`
-	Addr     string `json:"address"`
-	SerfPort int    `json:"serf_port"`
-	RpcPort  int    `json:"rpc_port"`
-	Status   string `json:"status"`
-}
-
-func (m *MemberInfo) ClusterAddr() *net.TCPAddr {
-	return &net.TCPAddr{IP: net.ParseIP(m.Addr), Port: m.SerfPort}
-}
-
-func (m *MemberInfo) RpcAddr() *net.TCPAddr {
-	return &net.TCPAddr{IP: net.ParseIP(m.Addr), Port: m.RpcPort}
-}
-
 type Config struct {
-	AdvertiseIP   *net.IP
-	ClusterAddr   *net.TCPAddr
-	DataDir       string
-	EnableSerfLog bool
-	Role          string
-	RpcPort       int
+	ClusterRPCAddr    *net.TCPAddr
+	DataDir           string
+	IsDirector        bool
+	IsGraph           bool
+	GraphHTTPAddr     *net.TCPAddr
+	GraphRPCAddr      *net.TCPAddr
+	JoinAddrs         []string
+	SerfAddr          *net.TCPAddr
+	SerfAdvertiseAddr *net.TCPAddr
+	SerfEncryptionKey string
+	SerfDebug         bool
+	RaftAdvertiseAddr *net.TCPAddr
 }
 
-type Manager interface {
-	Join(addr *net.TCPAddr) error
-	Members(role string) []*MemberInfo
-	Start() error
-	Stop()
+func NewCluster(logger *zerolog.Logger, dataDir string, rpcAddr, serfAddr, serfAdvertiseAddr *net.TCPAddr, serfDebug bool) (Cluster, error) {
+	log := logger.With().Str("component", "cluster").Logger()
+
+	clusterDataDir := filepath.Join(dataDir, "cluster")
+	serfDataDir := filepath.Join(clusterDataDir, "serf")
+
+	if err := fs.EnsureDir(clusterDataDir); err != nil {
+		return nil, fmt.Errorf("error creating cluster data dir: %s", clusterDataDir)
+	}
+
+	if err := fs.EnsureDir(serfDataDir); err != nil {
+		return nil, fmt.Errorf("error creating serf data dir: %s", serfDataDir)
+	}
+
+	return &cluster{
+		clusterDataDir:    clusterDataDir,
+		eventCh:           make(chan serf.Event, 256),
+		logger:            &log,
+		members:           make(map[string]MemberInfo),
+		rpcAddr:           rpcAddr,
+		serfAddr:          serfAddr,
+		serfAdvertiseAddr: serfAdvertiseAddr,
+		serfDataDir:       serfDataDir,
+		serfDebug:         serfDebug,
+	}, nil
 }
 
-type clusterManager struct {
-	advertiseIP   *net.IP
-	clusterAddr   *net.TCPAddr
-	dataDir       string
-	enableSerfLog bool
-	eventCh       chan serf.Event
-	memberID      string
-	members       map[string]*MemberInfo
-	membersLock   sync.RWMutex
-	role          string
-	rpcPort       int
-	serf          *serf.Serf
-	shutdownLock  sync.Mutex
-	shutdownCh    chan struct{}
-	shutdown      bool
+type Cluster interface {
+	Serve(stopWg *sync.WaitGroup, shutdownCh <-chan struct{}, errCh chan<- error)
 }
 
-func (m *clusterManager) Members(role string) []*MemberInfo {
-	m.membersLock.RLock()
-	defer m.membersLock.RUnlock()
+type cluster struct {
+	clusterDataDir    string
+	eventCh           chan serf.Event
+	logger            *zerolog.Logger
+	memberID          string
+	members           map[string]MemberInfo
+	membersLock       sync.RWMutex
+	rpcAddr           *net.TCPAddr
+	serf              *serf.Serf
+	serfAddr          *net.TCPAddr
+	serfAdvertiseAddr *net.TCPAddr
+	serfDataDir       string
+	serfDebug         bool
+}
 
-	members := make([]*MemberInfo, 0)
-	for _, member := range m.members {
-		if role == "" || member.Role == role {
-			members = append(members, member)
+func (c *cluster) Serve(stopWg *sync.WaitGroup, shutdownCh <-chan struct{}, errCh chan<- error) {
+	stopWg.Add(2)
+	go c.startServerRPC(stopWg, shutdownCh, errCh)
+	go c.startSerf(stopWg, shutdownCh, errCh)
+}
+
+func (c *cluster) startServerRPC(stopWg *sync.WaitGroup, shutdownCh <-chan struct{}, errCh chan<- error) {
+	defer stopWg.Done()
+
+	grpcServerAddr := c.rpcAddr.String()
+	grpcServer := grpc.NewServer()
+
+	// FIXME: Bind RPC
+	// s.cluster.BindRPC(grpcServer)
+
+	startErrCh := make(chan error, 1)
+	doneCh := make(chan struct{}, 1)
+
+	startFunc := func() {
+		c.logger.Debug().Msgf("Starting cluster RPC server on %v", grpcServerAddr)
+		listener, err := net.Listen("tcp", grpcServerAddr)
+		if err != nil {
+			startErrCh <- err
+			return
 		}
+		c.logger.Info().Msgf("Started cluster RPC server on %v", grpcServerAddr)
+		startErrCh <- grpcServer.Serve(listener)
 	}
-	return members
+
+	stopFunc := func() {
+		c.logger.Debug().Msg("Stopping cluster RPC server...")
+		grpcServer.GracefulStop()
+		close(doneCh)
+	}
+
+	go startFunc()
+
+	select {
+	case err := <-startErrCh:
+		errCh <- err
+		close(doneCh)
+	case <-shutdownCh:
+		stopFunc()
+	}
+
+	<-doneCh
+	c.logger.Info().Msg("Stopped cluster RPC server")
 }
 
-func (m *clusterManager) Join(addr *net.TCPAddr) error {
-	if _, err := m.serf.Join([]string{addr.String()}, true); err != nil {
-		return err
-	}
-	return nil
-}
+func (c *cluster) startSerf(stopWg *sync.WaitGroup, shutdownCh <-chan struct{}, errCh chan<- error) {
+	defer stopWg.Done()
 
-func (m *clusterManager) Start() error {
-	if err := fs.EnsurePath(m.dataDir, true); err != nil {
-		log.Error().Err(err).Msgf("error creating cluster data dir")
-		return fmt.Errorf("error creating cluster data dir: %s", m.dataDir)
-	}
-
-	if err := m.ensureMemberID(); err != nil {
-		log.Error().Err(err).Msg("error ensuring member id")
-		return fmt.Errorf("error ensuring member id")
-	}
-
-	snapshotPath := filepath.Join(m.dataDir, "serf-snapshot")
-
-	if err := fs.EnsurePath(snapshotPath, false); err != nil {
-		log.Error().Err(err).Msgf("error creating serf snapshot dir")
-		return fmt.Errorf("error creating serf snapshot dir: %s", snapshotPath)
-	}
-
-	bindIP := m.clusterAddr.IP.String()
-	serfAddr := &net.TCPAddr{
-		IP:   *m.advertiseIP,
-		Port: m.clusterAddr.Port,
-	}
-
-	serfConf := serf.DefaultConfig()
-	serfConf.Init()
-	serfConf.Tags["role"] = m.role
-	serfConf.Tags["serf_port"] = fmt.Sprintf("%d", serfAddr.Port)
-	serfConf.Tags["rpc_port"] = fmt.Sprintf("%d", m.rpcPort)
-
-	serfConf.EventCh = m.eventCh
-	serfConf.NodeName = m.memberID
-	serfConf.SnapshotPath = snapshotPath
-	serfConf.MemberlistConfig.BindAddr = bindIP
-	serfConf.MemberlistConfig.BindPort = serfAddr.Port
-	serfConf.MemberlistConfig.AdvertiseAddr = serfAddr.IP.String()
-	serfConf.MemberlistConfig.AdvertisePort = serfAddr.Port
-	serfConf.MemberlistConfig.LogOutput = ioutil.Discard
-
-	if m.enableSerfLog {
-		serfConf.Logger = stdlog.New(log.Logger, "", 0)
-	} else {
-		serfConf.LogOutput = ioutil.Discard
-	}
-
-	if s, err := serf.Create(serfConf); err != nil {
-		log.Error().Err(err).Msgf("error initializing serf")
-		return fmt.Errorf("error initializing serf")
-	} else {
-		m.serf = s
-	}
-
-	go m.monitorClusterEvents()
-
-	return nil
-}
-
-func (m *clusterManager) Stop() {
-	if m.serf != nil {
-		m.serf.Leave()
-		m.serf.Shutdown()
-	}
-	m.shutdownLock.Lock()
-	defer m.shutdownLock.Unlock()
-
-	if m.shutdown {
+	if err := c.ensureMemberID(); err != nil {
+		errCh <- fmt.Errorf("error ensuring cluster member id")
 		return
 	}
-	m.shutdown = true
-	close(m.shutdownCh)
+
+	startErrCh := make(chan error)
+	doneCh := make(chan struct{}, 1)
+
+	startFunc := func() {
+		c.logger.Info().Msgf("Starting serf server on %v", c.serfAddr.String())
+
+		serfConf := serf.DefaultConfig()
+		serfConf.Init()
+		// serfConf.Tags["role"] = m.role
+		// serfConf.Tags["serf_port"] = fmt.Sprintf("%d", serfAddr.Port)
+		// serfConf.Tags["rpc_port"] = fmt.Sprintf("%d", m.rpcPort)
+
+		serfConf.EventCh = c.eventCh
+		serfConf.NodeName = c.memberID
+		serfConf.SnapshotPath = filepath.Join(c.serfDataDir, "serf.snapshot")
+		serfConf.MemberlistConfig.BindAddr = c.serfAddr.IP.String()
+		serfConf.MemberlistConfig.BindPort = c.serfAddr.Port
+		serfConf.MemberlistConfig.AdvertiseAddr = c.serfAdvertiseAddr.IP.String()
+		serfConf.MemberlistConfig.AdvertisePort = c.serfAdvertiseAddr.Port
+		serfConf.MemberlistConfig.LogOutput = ioutil.Discard
+
+		if c.serfDebug {
+			serfConf.Logger = stdlog.New(c.logger, "", 0)
+		} else {
+			serfConf.LogOutput = ioutil.Discard
+		}
+
+		serfServer, err := serf.Create(serfConf)
+		if err != nil {
+			errCh <- err
+			return
+		}
+		c.serf = serfServer
+
+		go c.monitorClusterEvents(shutdownCh)
+	}
+
+	stopFunc := func() {
+		c.logger.Debug().Msg("Stopping serf server...")
+		if c.serf != nil {
+			// TODO: Shall we leave the cluster on shutdown?
+			c.serf.Leave()
+			if err := c.serf.Shutdown(); err != nil {
+				errCh <- err
+			}
+		}
+		close(doneCh)
+	}
+
+	go startFunc()
+
+	select {
+	case err := <-startErrCh:
+		errCh <- err
+		stopFunc()
+	case <-shutdownCh:
+		stopFunc()
+	}
+
+	<-doneCh
+	c.logger.Info().Msg("Stopped serf server")
 }
 
-func (m *clusterManager) ensureMemberID() error {
-	if m.memberID != "" {
+func (c *cluster) ensureMemberID() error {
+	if c.memberID != "" {
 		return nil
 	}
 
-	memberIDFilePath := filepath.Join(m.dataDir, ".id")
+	memberIDFilePath := filepath.Join(c.serfDataDir, "node_id")
 
 	if _, err := os.Stat(memberIDFilePath); err == nil {
 		data, err := ioutil.ReadFile(memberIDFilePath)
 		if err != nil {
 			return err
 		}
-		m.memberID = string(data)
+		c.memberID = string(data)
 	} else {
-		memberID := fmt.Sprintf("%s-%s", m.role, random.HexString(8))
+		memberID := fmt.Sprintf("node-%s", random.HexString(8))
 		if err := ioutil.WriteFile(memberIDFilePath, []byte(memberID), 0644); err != nil {
 			return err
 		}
-		m.memberID = memberID
+		c.memberID = memberID
 	}
 	return nil
 }
 
-func (m *clusterManager) monitorClusterEvents() {
+func (c *cluster) monitorClusterEvents(shutdownCh <-chan struct{}) {
 	for {
 		select {
-		case e := <-m.eventCh:
+		case e := <-c.eventCh:
 			switch e.EventType() {
 			case serf.EventMemberJoin:
-				m.addMember(e.(serf.MemberEvent))
+				c.addMember(e.(serf.MemberEvent))
 			case serf.EventMemberLeave, serf.EventMemberFailed:
-				m.removeMember(e.(serf.MemberEvent))
+				c.removeMember(e.(serf.MemberEvent))
 			case serf.EventMemberUpdate:
-				m.updateMember(e.(serf.MemberEvent))
-			//case serf.EventMemberReap:
-			//	//p.localMemberEvent(e.(serf.MemberEvent))
-			//case serf.EventMemberUpdate, serf.EventUser, serf.EventQuery:
-			//	// Ignore
+				c.updateMember(e.(serf.MemberEvent))
+				//case serf.EventMemberReap:
+				//	//p.localMemberEvent(e.(serf.MemberEvent))
+				//case serf.EventMemberUpdate, serf.EventUser, serf.EventQuery:
+				//	// Ignore
 			default:
-				log.Warn().Msgf("unhandled serf event: %#v", e)
+				c.logger.Warn().Msgf("unhandled serf event: %#v", e)
 			}
-		case <-m.shutdownCh:
+		case <-shutdownCh:
 			return
 		}
 	}
 }
 
-func (m *clusterManager) addMember(ev serf.MemberEvent) {
+func (c *cluster) addMember(ev serf.MemberEvent) {
 	for _, member := range ev.Members {
-		ok, info := m.createMemberInfo(member)
+		ok, info := c.createMemberInfo(member)
 		if !ok {
-			log.Warn().Msg("Attempt to add a member with an unknown role to the pool")
+			c.logger.Warn().Msg("Attempt to add a member with an unknown role to the pool")
 			continue
 		}
 
-		m.membersLock.Lock()
-		if _, exists := m.members[info.ID]; !exists {
-			log.Info().Msgf("Adding member to pool: %s [%s]", info.ID, info.Addr)
-			m.members[info.ID] = info
+		c.membersLock.Lock()
+		if _, exists := c.members[info.ID]; !exists {
+			c.logger.Info().Msgf("Adding member to pool: %s [%s]", info.ID, info.Addr)
+			c.members[info.ID] = *info
 		}
-		m.membersLock.Unlock()
+		c.membersLock.Unlock()
 	}
 }
 
-func (m *clusterManager) removeMember(ev serf.MemberEvent) {
+func (c *cluster) removeMember(ev serf.MemberEvent) {
 	for _, member := range ev.Members {
-		ok, info := m.createMemberInfo(member)
+		ok, info := c.createMemberInfo(member)
 		if !ok {
-			log.Warn().Msg("Attempt to remove a member with an unknown role to the pool")
+			c.logger.Warn().Msg("Attempt to remove a member with an unknown role to the pool")
 			continue
 		}
 
-		m.membersLock.Lock()
-		if _, exists := m.members[info.ID]; exists {
-			log.Info().Msgf("Removing member from pool: %s [%s]", info.ID, info.Addr)
-			delete(m.members, info.ID)
+		c.membersLock.Lock()
+		if _, exists := c.members[info.ID]; exists {
+			c.logger.Info().Msgf("Removing member from pool: %s [%s]", info.ID, info.Addr)
+			delete(c.members, info.ID)
 		}
-		m.membersLock.Unlock()
+		c.membersLock.Unlock()
 	}
 }
 
-func (m *clusterManager) updateMember(ev serf.MemberEvent) {
+func (c *cluster) updateMember(ev serf.MemberEvent) {
 	for _, member := range ev.Members {
-		ok, info := m.createMemberInfo(member)
+		ok, info := c.createMemberInfo(member)
 		if !ok {
-			log.Warn().Msg("Attempt to update a member with an unknown role to the pool")
+			c.logger.Warn().Msg("Attempt to update a member with an unknown role to the pool")
 			continue
 		}
 
-		m.membersLock.Lock()
-		if _, exists := m.members[info.ID]; exists {
-			log.Info().Msgf("Updating member in pool: %s [%s]", info.ID, info.Addr)
-			m.members[info.ID] = info
+		c.membersLock.Lock()
+		if _, exists := c.members[info.ID]; exists {
+			c.logger.Info().Msgf("Updating member in pool: %s [%s]", info.ID, info.Addr)
+			c.members[info.ID] = *info
 		}
-		m.membersLock.Unlock()
+		c.membersLock.Unlock()
 	}
 }
 
-func (m *clusterManager) createMemberInfo(member serf.Member) (bool, *MemberInfo) {
-	role := member.Tags["role"]
-	if role != RoleController && role != RoleWorker {
-		return false, nil
-	}
-
-	rpcPort, err := strconv.Atoi(member.Tags["rpc_port"])
-	if err != nil {
-		return false, nil
-	}
-
-	serfPort, err := strconv.Atoi(member.Tags["serf_port"])
-	if err != nil {
-		return false, nil
-	}
-
-	parts := &MemberInfo{
-		ID:       member.Name,
-		Addr:     member.Addr.String(),
-		Role:     role,
-		RpcPort:  rpcPort,
-		SerfPort: serfPort,
-		Status:   member.Status.String(),
-	}
-	return true, parts
+func (c *cluster) createMemberInfo(member serf.Member) (bool, *MemberInfo) {
+	// role := member.Tags["role"]
+	// if role != RoleController && role != RoleWorker {
+	// 	return false, nil
+	// }
+	//
+	// rpcPort, err := strconv.Atoi(member.Tags["rpc_port"])
+	// if err != nil {
+	// 	return false, nil
+	// }
+	//
+	// serfPort, err := strconv.Atoi(member.Tags["serf_port"])
+	// if err != nil {
+	// 	return false, nil
+	// }
+	//
+	// parts := &MemberInfo{
+	// 	ID:       member.Name,
+	// 	Addr:     member.Addr.String(),
+	// 	Role:     role,
+	// 	RpcPort:  rpcPort,
+	// 	SerfPort: serfPort,
+	// 	Status:   member.Status.String(),
+	// }
+	// return true, parts
+	return false, nil
 }
+
+/*
+func (c *controller) startClusterManager(wg *sync.WaitGroup, shutdownCh <-chan struct{}, errCh chan<- error) {
+	defer wg.Done()
+
+
+
+	manager := cluster.NewClusterManager(&cluster.Config{
+		AdvertiseIP:   c.config.AdvertiseIP,
+		ClusterAddr:   c.config.ClusterAddr,
+		Role:          cluster.RoleController,
+		DataDir:       c.config.DataDir,
+		EnableSerfLog: c.config.VerboseMode,
+		RpcPort:       c.config.RpcAddr.Port,
+	})
+	c.clusterManager = manager
+
+c
+}
+*/

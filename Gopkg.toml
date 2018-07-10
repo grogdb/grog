@@ -64,3 +64,15 @@
 [[constraint]]
   name = "github.com/antlr/antlr4"
   version = "4.7.1"
+
+[[constraint]]
+  name = "github.com/google/flatbuffers"
+  version = "1.9.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/hashicorp/go-sockaddr"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/mitchellh/go-homedir"

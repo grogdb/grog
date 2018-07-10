@@ -13,6 +13,5 @@ go_library(
     deps = [
         "//internal/util/hash:go_default_library",
         "//internal/util/json:go_default_library",
-        "//vendor/git.perkbox.io/payday/util/jsonx:go_default_library",
     ],
 )

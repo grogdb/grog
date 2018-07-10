@@ -66,16 +66,16 @@ func initialize(cmd *cobra.Command, _ []string) error {
 	case logFormatConsole:
 		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	case logFormatJSON:
-		log.Logger = log.With().
-			Str("app", "grog").
-			Str("version", appVersion).
-			Str("build", appBuild).
-			Logger()
-
 		zerolog.TimeFieldFormat = ""
 	default:
 		return fmt.Errorf("invalid log format: %s", logFormat)
 	}
+
+	log.Logger = log.Logger.With().
+		Str("app", "grogdb").
+		Str("version", appVersion).
+		Str("build", appBuild).
+		Logger()
 	rootLogger = &log.Logger
 
 	return nil

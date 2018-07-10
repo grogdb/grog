@@ -1,13 +1,7 @@
 package cmd
 
 import (
-	"fmt"
-	"io/ioutil"
-
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	"github.com/grogdb/grogdb/internal/parser"
-	"encoding/json"
 )
 
 func init() {
@@ -47,26 +41,26 @@ func runSchemaGet(_ *cobra.Command, _ []string) error {
 }
 
 func runSchemaSet(_ *cobra.Command, _ []string) error {
-	filename := viper.GetString(flagFile)
-	if filename == "" {
-		return fmt.Errorf("required argument: --file")
-	}
-
-	data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return err
-	}
-
-	schema, err := parser.ParseSchema(data)
-	if err != nil {
-		return err
-	}
-
-	jsonData, err := json.Marshal(schema)
-	if err != nil {
-		return err
-	}
-	fmt.Printf("\n\n%s\n\n", string(jsonData))
+	// filename := viper.GetString(flagFile)
+	// if filename == "" {
+	// 	return fmt.Errorf("required argument: --file")
+	// }
+	//
+	// data, err := ioutil.ReadFile(filename)
+	// if err != nil {
+	// 	return err
+	// }
+	//
+	// schema, err := parser.ParseSchema(data)
+	// if err != nil {
+	// 	return err
+	// }
+	//
+	// jsonData, err := json.Marshal(schema)
+	// if err != nil {
+	// 	return err
+	// }
+	// fmt.Printf("\n\n%s\n\n", string(jsonData))
 	return nil
 }
 

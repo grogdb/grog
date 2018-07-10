@@ -1,19 +1,51 @@
-
-
-type Person {
-    id ID
-    email string
-    age int
-    location geopoint
-    partner Person
-    friends [Person]
+options {
+/*
+    plugins: [
+        "replica" : {
+            "version": "~1.0"
+            "config": {
+                "blah" : 1,
+                "blahblah": "aafasf"
+                "clag" : true
+            }
+        }
+        replica, p1, p2, p3
+    ]
+*/
 }
 
-type Other {
-    id ID
-    email string
-    age inta
-    location geopoint
-    partner Person
-    partner [Person]
+schema {
+    type Person {
+        _id ID
+        email string
+        age int
+        location geopoint
+        partner Person
+        friends [Person]
+    }
+
+    type Other {
+        _id ID
+        email string
+        age int
+        location geopoint
+        partner Person
+        partner [Person]
+    }
+
 }
+
+// Google flatbuffers
+/*
+    type Person (
+        replica.replicas: 3
+        [pluginid].[plugin_prop]: [plugin_prop_value]
+    ){
+        id ID
+        email string
+        age int
+        location geopoint
+        partner Person
+        friends [Person]
+    }
+*/

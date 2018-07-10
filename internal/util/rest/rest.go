@@ -3,11 +3,9 @@ package rest
 import (
 	"fmt"
 	"net/http"
-	"reflect"
 	"strconv"
 	"time"
 
-	"git.perkbox.io/payday/util/jsonx"
 	"github.com/grogdb/grogdb/internal/util/json"
 )
 
@@ -56,17 +54,17 @@ func SendJSON(w http.ResponseWriter, statusCode int, data interface{}, eTagger .
 	return nil
 }
 
-// Bind attempts to decode a JSON request body into a structure
-func Bind(r *http.Request, v interface{}) error {
-	if reflect.ValueOf(v).IsNil() {
-		return fmt.Errorf("v cannot be nil")
-	}
-
-	if reflect.ValueOf(v).Kind() != reflect.Ptr {
-		return fmt.Errorf("v must be a pointer type")
-	}
-	return jsonx.NewDecoder(r.Body).Decode(v)
-}
+// // Bind attempts to decode a JSON request body into a structure
+// func Bind(r *http.Request, v interface{}) error {
+// 	if reflect.ValueOf(v).IsNil() {
+// 		return fmt.Errorf("v cannot be nil")
+// 	}
+//
+// 	if reflect.ValueOf(v).Kind() != reflect.Ptr {
+// 		return fmt.Errorf("v must be a pointer type")
+// 	}
+// 	return json.NewDecoder(r.Body).Decode(v)
+// }
 
 func MustQueryParamInt(r *http.Request, key string) (int, error) {
 	vs, err := MustQueryParamString(r, key)
