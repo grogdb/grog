@@ -11,7 +11,7 @@ go_library(
         "internal_generated.go",
         "rpc.pb.go",
     ],
-    importpath = "github.com/grogdb/grogdb/internal/rpc",
+    importpath = "github.com/grafodb/grafodb/internal/rpc",
     visibility = ["//:__subpackages__"],
     deps = [
         "//vendor/github.com/golang/protobuf/proto:go_default_library",

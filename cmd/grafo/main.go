@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/grogdb/grogdb/internal/bootstrap/cmd"
+	"github.com/grafodb/grafodb/internal/bootstrap/cmd"
 )
 
 var (

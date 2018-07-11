@@ -1,15 +1,14 @@
 version: '3.6'
 services:
-  grog-0:
-    image: grog/grog:0.0.1-alpha
+  grafo:
+    image: grafodb/grafodb:0.1.0-alpha
     environment:
-    - DEBUG=true
-    - LOG_FORMAT=console
+    - GRAFO_DEBUG=true
+    - GRAFO_DATA_DIR=/data
     ports:
-     - 8080:8000
+    - 8000:8000
+    - 9000:9000
     volumes:
-      - grog-0-data:/data/db
+      - grafo-0-data:/data
 volumes:
-  grog-0-data:
-  grog-1-data:
-  grog-2-data:
+  grafo-data:

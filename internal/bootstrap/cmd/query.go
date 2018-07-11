@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/grogdb/grogdb/internal/util/cliutil"
+	"github.com/grafodb/grafodb/internal/util/cliutil"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

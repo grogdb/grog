@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/grogdb/grogdb/internal/util/json"
+	"github.com/grafodb/grafodb/internal/util/json"
 )
 
 // var defaultETagger = NewMD5HashETagger()

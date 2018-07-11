@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["director.go"],
+    importpath = "github.com/grafodb/grafodb/internal/director",
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//internal/cluster:go_default_library",
+        "//vendor/github.com/rs/zerolog:go_default_library",
+    ],
+)

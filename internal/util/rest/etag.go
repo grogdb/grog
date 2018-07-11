@@ -1,7 +1,7 @@
 package rest
 
 import (
-	"github.com/grogdb/grogdb/internal/util/hash"
+	"github.com/grafodb/grafodb/internal/util/hash"
 )
 
 type ETagger interface {

@@ -11,15 +11,14 @@ import (
 	"github.com/spf13/viper"
 )
 
-var rootCmd = &cobra.Command{
-	Use:               "grog",
-	Short:             "Grog is a fast distributed graph database",
-	PersistentPreRunE: initialize,
-}
-
 var (
-	appBuild   = "dev"
-	appVersion = "X.X.X"
+	appBuild, appVersion string
+
+	rootCmd = &cobra.Command{
+		Use:               "grafo",
+		Short:             "GrafoDB is a fast distributed graph database",
+		PersistentPreRunE: initialize,
+	}
 )
 
 func Execute(build, version string) error {
@@ -34,7 +33,7 @@ func Execute(build, version string) error {
 
 func init() {
 	rootCmd.PersistentFlags().BoolP(flagDebug, flagDebugShort, false, flagDebugDesc)
-	rootCmd.PersistentFlags().String(flagLogFormat, logFormatConsole, flagLogFormatDesc)
+	rootCmd.PersistentFlags().StringP(flagLogFormat, flagLogFormatShort, defaultLogFormat, flagLogFormatDesc)
 	rootCmd.PersistentFlags().Bool(flagVerbose, false, flagVerboseDesc)
 }
 
@@ -47,7 +46,7 @@ func initialize(cmd *cobra.Command, _ []string) error {
 	envKeyReplacer := strings.NewReplacer("-", "_")
 	viper.SetEnvKeyReplacer(envKeyReplacer)
 
-	viper.SetEnvPrefix("GROG")
+	viper.SetEnvPrefix("GRAFO")
 	viper.AutomaticEnv()
 
 	// logging
@@ -72,7 +71,7 @@ func initialize(cmd *cobra.Command, _ []string) error {
 	}
 
 	log.Logger = log.Logger.With().
-		Str("app", "grogdb").
+		Str("app", "grafodb").
 		Str("version", appVersion).
 		Str("build", appBuild).
 		Logger()

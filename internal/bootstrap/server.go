@@ -7,9 +7,9 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/grogdb/grogdb/internal/cluster"
-	"github.com/grogdb/grogdb/internal/director"
-	"github.com/grogdb/grogdb/internal/graph"
+	"github.com/grafodb/grafodb/internal/cluster"
+	"github.com/grafodb/grafodb/internal/director"
+	"github.com/grafodb/grafodb/internal/graph"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -33,7 +33,7 @@ type ServerConfig struct {
 }
 
 func NewServer(logger *zerolog.Logger, cfg *ServerConfig) Server {
-	return &grogServer{
+	return &server{
 		config:     cfg,
 		logger:     logger,
 		shutdownCh: make(chan struct{}, 1),
@@ -45,7 +45,7 @@ type Server interface {
 	Shutdown()
 }
 
-type grogServer struct {
+type server struct {
 	config       *ServerConfig
 	cluster      cluster.Cluster
 	graph        graph.Graph
@@ -56,13 +56,13 @@ type grogServer struct {
 	shutdown     bool
 }
 
-func (s *grogServer) Start() error {
+func (s *server) Start() error {
 	var stopWg sync.WaitGroup
 	startErrCh := make(chan error, 1)
 
 	cfg := s.config
 
-	c, err :=cluster.NewCluster(s.logger, cfg.DataDir, cfg.ClusterRPCAddr, cfg.SerfAddr, cfg.SerfAdvertiseAddr, cfg.SerfDebug)
+	c, err := cluster.NewCluster(s.logger, cfg.DataDir, cfg.ClusterRPCAddr, cfg.SerfAddr, cfg.SerfAdvertiseAddr, cfg.SerfDebug)
 	if err != nil {
 		return err
 	}
@@ -102,7 +102,7 @@ func (s *grogServer) Start() error {
 	return startErr
 }
 
-func (s *grogServer) Shutdown() {
+func (s *server) Shutdown() {
 	s.shutdownLock.Lock()
 	defer s.shutdownLock.Unlock()
 

@@ -60,64 +60,64 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// Client API for GrogDB service
+// Client API for Grafo service
 
-type GrogDBClient interface {
+type GrafoClient interface {
 	Send(ctx context.Context, in *Message, opts ...grpc.CallOption) (*Message, error)
 }
 
-type grogDBClient struct {
+type grafoClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewGrogDBClient(cc *grpc.ClientConn) GrogDBClient {
-	return &grogDBClient{cc}
+func NewGrafoClient(cc *grpc.ClientConn) GrafoClient {
+	return &grafoClient{cc}
 }
 
-func (c *grogDBClient) Send(ctx context.Context, in *Message, opts ...grpc.CallOption) (*Message, error) {
+func (c *grafoClient) Send(ctx context.Context, in *Message, opts ...grpc.CallOption) (*Message, error) {
 	out := new(Message)
-	err := grpc.Invoke(ctx, "/rpc.GrogDB/Send", in, out, c.cc, opts...)
+	err := grpc.Invoke(ctx, "/rpc.Grafo/Send", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// Server API for GrogDB service
+// Server API for Grafo service
 
-type GrogDBServer interface {
+type GrafoServer interface {
 	Send(context.Context, *Message) (*Message, error)
 }
 
-func RegisterGrogDBServer(s *grpc.Server, srv GrogDBServer) {
-	s.RegisterService(&_GrogDB_serviceDesc, srv)
+func RegisterGrafoServer(s *grpc.Server, srv GrafoServer) {
+	s.RegisterService(&_Grafo_serviceDesc, srv)
 }
 
-func _GrogDB_Send_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Grafo_Send_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Message)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GrogDBServer).Send(ctx, in)
+		return srv.(GrafoServer).Send(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/rpc.GrogDB/Send",
+		FullMethod: "/rpc.Grafo/Send",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GrogDBServer).Send(ctx, req.(*Message))
+		return srv.(GrafoServer).Send(ctx, req.(*Message))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _GrogDB_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "rpc.GrogDB",
-	HandlerType: (*GrogDBServer)(nil),
+var _Grafo_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "rpc.Grafo",
+	HandlerType: (*GrafoServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Send",
-			Handler:    _GrogDB_Send_Handler,
+			Handler:    _Grafo_Send_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -127,13 +127,13 @@ var _GrogDB_serviceDesc = grpc.ServiceDesc{
 func init() { proto.RegisterFile("internal/rpc/rpc.proto", fileDescriptor0) }
 
 var fileDescriptor0 = []byte{
-	// 116 bytes of a gzipped FileDescriptorProto
+	// 115 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xcb, 0xcc, 0x2b, 0x49,
 	0x2d, 0xca, 0x4b, 0xcc, 0xd1, 0x2f, 0x2a, 0x48, 0x06, 0x61, 0xbd, 0x82, 0xa2, 0xfc, 0x92, 0x7c,
 	0x21, 0xe6, 0xa2, 0x82, 0x64, 0x25, 0x65, 0x2e, 0x76, 0xdf, 0xd4, 0xe2, 0xe2, 0xc4, 0xf4, 0x54,
 	0x21, 0x09, 0x2e, 0xf6, 0x82, 0xc4, 0xca, 0x9c, 0xfc, 0xc4, 0x14, 0x09, 0x46, 0x05, 0x46, 0x0d,
-	0x9e, 0x20, 0x18, 0xd7, 0x48, 0x8f, 0x8b, 0xcd, 0xbd, 0x28, 0x3f, 0xdd, 0xc5, 0x49, 0x48, 0x85,
-	0x8b, 0x25, 0x38, 0x35, 0x2f, 0x45, 0x88, 0x47, 0x0f, 0x64, 0x0e, 0x54, 0xa7, 0x14, 0x0a, 0x4f,
-	0x89, 0x21, 0x89, 0x0d, 0x6c, 0x81, 0x31, 0x20, 0x00, 0x00, 0xff, 0xff, 0x0f, 0xf2, 0xda, 0x37,
-	0x7a, 0x00, 0x00, 0x00,
+	0x9e, 0x20, 0x18, 0xd7, 0x48, 0x97, 0x8b, 0xd5, 0xbd, 0x28, 0x31, 0x2d, 0x5f, 0x48, 0x85, 0x8b,
+	0x25, 0x38, 0x35, 0x2f, 0x45, 0x88, 0x47, 0x0f, 0x64, 0x0c, 0x54, 0xa3, 0x14, 0x0a, 0x4f, 0x89,
+	0x21, 0x89, 0x0d, 0x6c, 0xbe, 0x31, 0x20, 0x00, 0x00, 0xff, 0xff, 0x91, 0x2f, 0x36, 0xae, 0x79,
+	0x00, 0x00, 0x00,
 }

@@ -1,7 +1,11 @@
 grammar Schema;
 
+document
+    : schema EOF
+    ;
+
 schema
-    : 'schema' schemaBody EOF
+    : 'schema' schemaBody
     ;
 
 schemaBody

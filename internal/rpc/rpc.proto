@@ -6,6 +6,6 @@ message Message {
     bytes payload = 1;
 }
 
-service GrogDB {
+service Grafo {
     rpc Send(Message) returns (Message) {}
 }

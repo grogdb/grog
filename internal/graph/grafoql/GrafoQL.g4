@@ -1,52 +1,24 @@
-grammar Query;
+grammar GrafoQL;
 
-/*
- * Parser rules
- */
-
-schema
-   : typeDecl (typeDecl)* EOF
-   ;
-
-typeDecl
-    : 'type' typeName typeBody
+document
+    : (query | mutation) EOF
     ;
 
-typeName
-    :   TypeIdent
+query
+    : 'query' schemaBody
     ;
 
-typeBody
-    :   '{' (   field
-            )+
-        '}'
+schemaBody
+    :   '{' .*? '}'
     ;
 
-field
-    : fieldName fieldType
+mutation
+    : 'mutation' schemaBody
     ;
 
-fieldName
-    :   FieldIdent
+mutationBody
+    :   '{' .*? '}'
     ;
-
-fieldType
-    :   (   'ID'
-        |   'int'
-        |   'float'
-        |   'string'
-        |   'bool'
-        |   'datetime'
-        |   'geopoint'
-        |   TypeIdent
-        |   TypeIdentArray
-        )
-    ;
-
-
-/*
- * Lexical elements
- */
 
 // Letters and digits
 
@@ -55,7 +27,7 @@ fragment ULetter
     ;
 
 fragment LLetter
-    : [a-z]
+    : [a-z_]
     ;
 
 fragment Letter
@@ -63,7 +35,7 @@ fragment Letter
     ;
 
 fragment Digit
-    :   [0-9]
+    : [0-9]
     ;
 
 TypeIdentArray

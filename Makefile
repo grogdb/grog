@@ -37,8 +37,8 @@ $(PROTO_FILES): %.pb.go: %.proto
 
 # TODO: Fix makefile rule
 antlr:
-	@$(ANTLR) -Dlanguage=Go -package config internal/parser/config/Config.g4
-	@$(ANTLR) -Dlanguage=Go -package query internal/parser/query/Query.g4
+	@$(ANTLR) -Dlanguage=Go -package grafoql internal/graph/grafoql/GrafoQL.g4
+	@$(ANTLR) -Dlanguage=Go -package schema internal/graph/schema/Schema.g4
 
 clean:
 	@$(BAZEL) clean

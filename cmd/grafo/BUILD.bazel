@@ -4,13 +4,13 @@ load("@io_bazel_rules_docker//go:image.bzl", "go_image")
 go_library(
     name = "go_default_library",
     srcs = ["main.go"],
-    importpath = "github.com/grogdb/grogdb/cmd/grog",
+    importpath = "github.com/grafodb/grafodb/cmd/grafo",
     visibility = ["//visibility:private"],
     deps = ["//internal/bootstrap/cmd:go_default_library"],
 )
 
 go_binary(
-    name = "grog",
+    name = "grafo",
     embed = [":go_default_library"],
     visibility = ["//visibility:public"],
     x_defs = {
@@ -21,6 +21,6 @@ go_binary(
 
 go_image(
     name = "docker-image",
-    binary = ":grog",
+    binary = ":grafo",
     visibility = ["//visibility:public"],
 )

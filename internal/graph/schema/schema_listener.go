@@ -1,23 +1,17 @@
-// Code generated from internal/parser/config/Config.g4 by ANTLR 4.7.1. DO NOT EDIT.
+// Code generated from internal/graph/schema/Schema.g4 by ANTLR 4.7.1. DO NOT EDIT.
 
-package config // Config
+package schema // Schema
 import "github.com/antlr/antlr4/runtime/Go/antlr"
 
-// ConfigListener is a complete listener for a parse tree produced by ConfigParser.
-type ConfigListener interface {
+// SchemaListener is a complete listener for a parse tree produced by SchemaParser.
+type SchemaListener interface {
 	antlr.ParseTreeListener
 
 	// EnterDocument is called when entering the document production.
 	EnterDocument(c *DocumentContext)
 
-	// EnterOptionsBlock is called when entering the optionsBlock production.
-	EnterOptionsBlock(c *OptionsBlockContext)
-
-	// EnterOptionsBody is called when entering the optionsBody production.
-	EnterOptionsBody(c *OptionsBodyContext)
-
-	// EnterSchemaBlock is called when entering the schemaBlock production.
-	EnterSchemaBlock(c *SchemaBlockContext)
+	// EnterSchema is called when entering the schema production.
+	EnterSchema(c *SchemaContext)
 
 	// EnterSchemaBody is called when entering the schemaBody production.
 	EnterSchemaBody(c *SchemaBodyContext)
@@ -46,14 +40,8 @@ type ConfigListener interface {
 	// ExitDocument is called when exiting the document production.
 	ExitDocument(c *DocumentContext)
 
-	// ExitOptionsBlock is called when exiting the optionsBlock production.
-	ExitOptionsBlock(c *OptionsBlockContext)
-
-	// ExitOptionsBody is called when exiting the optionsBody production.
-	ExitOptionsBody(c *OptionsBodyContext)
-
-	// ExitSchemaBlock is called when exiting the schemaBlock production.
-	ExitSchemaBlock(c *SchemaBlockContext)
+	// ExitSchema is called when exiting the schema production.
+	ExitSchema(c *SchemaContext)
 
 	// ExitSchemaBody is called when exiting the schemaBody production.
 	ExitSchemaBody(c *SchemaBodyContext)

@@ -5,7 +5,7 @@ import (
 	"net"
 	"strings"
 
-	"github.com/grogdb/grogdb/internal/bootstrap"
+	"github.com/grafodb/grafodb/internal/bootstrap"
 	"github.com/hashicorp/go-sockaddr/template"
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"

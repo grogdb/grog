@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/grogdb/grogdb/internal/cluster"
+	"github.com/grafodb/grafodb/internal/cluster"
 	"github.com/rs/zerolog"
 )
 

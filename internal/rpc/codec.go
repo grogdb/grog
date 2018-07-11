@@ -1,7 +1,7 @@
 package rpc
 
 import (
-	"log"
+	"fmt"
 )
 
 type MessageCodec struct{}
@@ -9,7 +9,7 @@ type MessageCodec struct{}
 func (cb *MessageCodec) Marshal(v interface{}) ([]byte, error) {
 	p, ok := v.(*Message)
 	if !ok {
-		log.Fatalf("Invalid type of struct: %+v", v)
+		return nil, fmt.Errorf("invalid message type: %+v", v)
 	}
 	return p.Payload, nil
 }
@@ -17,7 +17,7 @@ func (cb *MessageCodec) Marshal(v interface{}) ([]byte, error) {
 func (cb *MessageCodec) Unmarshal(data []byte, v interface{}) error {
 	p, ok := v.(*Message)
 	if !ok {
-		log.Fatalf("Invalid type of struct: %+v", v)
+		return fmt.Errorf("invalid message type: %+v", v)
 	}
 	p.Payload = data
 	return nil

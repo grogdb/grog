@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi"
-	"github.com/grogdb/grogdb/internal/cluster"
+	"github.com/grafodb/grafodb/internal/cluster"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 )

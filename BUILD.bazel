@@ -5,13 +5,13 @@ gazelle(
     name = "gazelle",
     command = "update",
     external = "vendored",
-    prefix = "github.com/grogdb/grogdb",
+    prefix = "github.com/grafodb/grafodb",
 )
 
 container_bundle(
     name = "package",
     images = {
-        "grogdb/grogdb:{VERSION}": "//cmd/grog:docker-image",
+        "grafodb/grafodb:{VERSION}": "//cmd/grafo:docker-image",
     },
     stamp = True,
 )

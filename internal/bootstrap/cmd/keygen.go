@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"github.com/grogdb/grogdb/internal/util/random"
+	"github.com/grafodb/grafodb/internal/util/random"
 	"github.com/spf13/cobra"
 )
 

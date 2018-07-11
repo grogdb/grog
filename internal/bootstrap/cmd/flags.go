@@ -46,6 +46,7 @@ const (
 	flagJoin                = "join"
 	flagJoinDesc            = "address of a node to join a cluster. Can be specified as a comma separated list"
 	flagLogFormat           = "log-format"
+	flagLogFormatShort      = "L"
 	flagLogFormatDesc       = "set the log format [console, json]"
 	flagNoGraph             = "no-graph"
 	flagNoGraphDesc         = "disable graph server on this node"
@@ -61,9 +62,10 @@ const (
 	defaultClusterPort     = 44011
 	defaultClusterRaftPort = 44012
 	defaultClusterRPCPort  = 44013
-	defaultDataDir         = "~/.grog"
+	defaultDataDir         = "~/.grafodb"
 	defaultClientHTTPPort  = 8000
 	defaultClientRPCPort   = 9000
+	defaultLogFormat       = logFormatConsole
 	logFormatConsole       = "console"
 	logFormatJSON          = "json"
 )

@@ -16,6 +16,6 @@ func init() {
 }
 
 func runVersion(_ *cobra.Command, _ []string) error {
-	fmt.Printf("grog - v%s [build=%s]\n", appVersion, appBuild)
+	fmt.Printf("GrafoDB - v%s [build=%s]\n", appVersion, appBuild)
 	return nil
 }

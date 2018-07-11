@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/grogdb/grogdb/internal/util/fs"
-	"github.com/grogdb/grogdb/internal/util/random"
+	"github.com/grafodb/grafodb/internal/util/fs"
+	"github.com/grafodb/grafodb/internal/util/random"
 	"github.com/hashicorp/serf/serf"
 	"github.com/rs/zerolog/log"
 )
